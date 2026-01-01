@@ -6,6 +6,9 @@ import { Dashboard } from "@/components/dashboard"
 import { SessionMode } from "@/components/session-mode"
 import { Debrief } from "@/components/debrief"
 import { HistoryLogs } from "@/components/history-logs"
+import { useAuth } from "@/lib/auth-context"
+import { loadUserData, saveUserData } from "@/lib/firestore"
+import { LogIn } from "lucide-react"
 
 export interface SessionLog {
   id: string
@@ -25,6 +28,7 @@ const INITIAL_HOURS = 1000
 const INITIAL_SECONDS = INITIAL_HOURS * 60 * 60
 
 export default function Home() {
+  const { user, loading: authLoading, signInWithGoogle } = useAuth()
   const [isLoaded, setIsLoaded] = useState(false)
   const [mission, setMission] = useState<string | null>(null)
   const [remainingSeconds, setRemainingSeconds] = useState(INITIAL_SECONDS)
@@ -35,25 +39,38 @@ export default function Home() {
   const [currentSessionDuration, setCurrentSessionDuration] = useState(0)
   const [showHistory, setShowHistory] = useState(false)
 
-  // Load from localStorage on mount
+  // Load from Firestore when user logs in
   useEffect(() => {
-    const saved = localStorage.getItem("1000hours-state")
-    if (saved) {
-      const state: AppState = JSON.parse(saved)
-      setMission(state.mission)
-      setRemainingSeconds(state.remainingSeconds)
-      setLogs(state.logs.map((log) => ({ ...log, timestamp: new Date(log.timestamp) })))
+    async function loadData() {
+      if (user) {
+        try {
+          const data = await loadUserData(user.uid)
+          if (data) {
+            setMission(data.mission)
+            setRemainingSeconds(data.remainingSeconds)
+            setLogs(data.logs)
+          }
+        } catch (error) {
+          console.error("Failed to load user data:", error)
+        }
+      }
+      setIsLoaded(true)
     }
-    setIsLoaded(true)
-  }, [])
 
-  // Save to localStorage on state change
-  useEffect(() => {
-    if (isLoaded && mission) {
-      const state: AppState = { mission, remainingSeconds, logs }
-      localStorage.setItem("1000hours-state", JSON.stringify(state))
+    if (!authLoading) {
+      loadData()
     }
-  }, [mission, remainingSeconds, logs, isLoaded])
+  }, [user, authLoading])
+
+  // Save to Firestore on state change
+  useEffect(() => {
+    if (isLoaded && mission && user) {
+      const state: AppState = { mission, remainingSeconds, logs }
+      saveUserData(user.uid, state).catch((error) => {
+        console.error("Failed to save user data:", error)
+      })
+    }
+  }, [mission, remainingSeconds, logs, isLoaded, user])
 
   // Timer logic
   useEffect(() => {
@@ -105,10 +122,30 @@ export default function Home() {
     setCurrentSessionDuration(0)
   }
 
-  if (!isLoaded) {
+  if (!isLoaded || authLoading) {
     return (
       <main className="min-h-screen bg-black flex items-center justify-center">
         <span className="text-slate-500 font-mono text-sm animate-pulse">INITIALIZING...</span>
+      </main>
+    )
+  }
+
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center space-y-6 p-8">
+          <div className="space-y-2">
+            <h1 className="text-amber-500 font-mono text-4xl tracking-tight">1000_HOURS</h1>
+            <p className="text-slate-500 font-mono text-sm">Sign in to track your progress</p>
+          </div>
+          <button
+            onClick={signInWithGoogle}
+            className="flex items-center gap-3 mx-auto px-6 py-3 bg-white text-black font-mono text-sm hover:bg-slate-200 transition-colors rounded"
+          >
+            <LogIn className="w-4 h-4" />
+            Sign in with Google
+          </button>
+        </div>
       </main>
     )
   }

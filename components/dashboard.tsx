@@ -1,7 +1,8 @@
 "use client"
 
 import { formatTime, formatHoursDecimal } from "@/lib/time-utils"
-import { Clock, History } from "lucide-react"
+import { Clock, History, LogOut } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 import type { SessionLog } from "@/app/page"
 
 interface DashboardProps {
@@ -15,6 +16,7 @@ interface DashboardProps {
 const INITIAL_HOURS = 1000
 
 export function Dashboard({ mission, remainingSeconds, logs, onInitiate, onShowHistory }: DashboardProps) {
+  const { user, signOut } = useAuth()
   const completedHours = (INITIAL_HOURS * 60 * 60 - remainingSeconds) / 3600
   const totalBlocks = 100
   const filledBlocks = Math.floor((completedHours / INITIAL_HOURS) * totalBlocks)
@@ -28,13 +30,22 @@ export function Dashboard({ mission, remainingSeconds, logs, onInitiate, onShowH
             <Clock className="w-4 h-4 text-slate-600" />
             <span className="text-slate-500 font-mono text-xs tracking-widest">1000_HOURS</span>
           </div>
-          <button
-            onClick={onShowHistory}
-            className="flex items-center gap-2 text-slate-600 hover:text-slate-400 transition-colors"
-          >
-            <History className="w-4 h-4" />
-            <span className="font-mono text-xs hidden sm:inline">LOGS [{logs.length}]</span>
-          </button>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={onShowHistory}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-400 transition-colors"
+            >
+              <History className="w-4 h-4" />
+              <span className="font-mono text-xs hidden sm:inline">LOGS [{logs.length}]</span>
+            </button>
+            <button
+              onClick={signOut}
+              className="flex items-center gap-2 text-slate-600 hover:text-slate-400 transition-colors"
+              title="Sign out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </header>
 
