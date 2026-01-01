@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react"
 import { User, signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from "firebase/auth"
 import { auth, googleProvider } from "./firebase"
+import {posthog} from "posthog-js";
 
 interface AuthContextType {
   user: User | null
@@ -33,7 +34,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithGoogle = async () => {
     try {
-      await signInWithPopup(auth, googleProvider)
+      const user = await signInWithPopup(auth, googleProvider)
+      posthog.identify(user.user.uid, { email: user.user.email })
     } catch (error) {
       console.error("Error signing in with Google:", error)
       throw error
