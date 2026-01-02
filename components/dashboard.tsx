@@ -82,9 +82,8 @@ export function Dashboard({ mission, remainingSeconds, logs, onInitiate, onShowH
             {Array.from({ length: totalBlocks }).map((_, i) => (
               <div
                 key={i}
-                className={`aspect-square border-[1px] ${
-                  i < filledBlocks ? "bg-amber-500/80 border-amber-500/50" : "bg-transparent border-slate-800"
-                }`}
+                className={`aspect-square border-[1px] ${i < filledBlocks ? "bg-amber-500/80 border-amber-500/50" : "bg-transparent border-slate-800"
+                  }`}
               />
             ))}
           </div>
@@ -102,6 +101,17 @@ export function Dashboard({ mission, remainingSeconds, logs, onInitiate, onShowH
           <span className={remainingSeconds > 0 ? "text-green-600" : "text-red-500"}>
             {remainingSeconds > 0 ? "ACTIVE" : "DEPLETED"}
           </span>
+        </div>
+        <div className="text-center text-slate-600 font-mono text-xs mt-2">
+          Made by{" "}
+          <a
+            href="https://x.com/hex_paradus"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-amber-500/70 hover:text-amber-500 transition-colors"
+          >
+            @hex_paradus
+          </a>
         </div>
       </footer>
     </main>
