@@ -22,6 +22,7 @@ export interface AppState {
   mission: string
   remainingSeconds: number
   logs: SessionLog[]
+  sessionStartTime: number | null
 }
 
 const INITIAL_HOURS = 1000
@@ -49,6 +50,14 @@ export default function Home() {
             setMission(data.mission)
             setRemainingSeconds(data.remainingSeconds)
             setLogs(data.logs)
+            // Restore active session if it exists
+            if (data.sessionStartTime) {
+              setSessionStartTime(data.sessionStartTime)
+              setIsSessionActive(true)
+              // Calculate elapsed time since session started
+              const elapsed = Math.floor((Date.now() - data.sessionStartTime) / 1000)
+              setCurrentSessionDuration(elapsed)
+            }
           }
         } catch (error) {
           console.error("Failed to load user data:", error)
@@ -65,12 +74,12 @@ export default function Home() {
   // Save to Firestore on state change
   useEffect(() => {
     if (isLoaded && mission && user) {
-      const state: AppState = { mission, remainingSeconds, logs }
+      const state: AppState = { mission, remainingSeconds, logs, sessionStartTime }
       saveUserData(user.uid, state).catch((error) => {
         console.error("Failed to save user data:", error)
       })
     }
-  }, [mission, remainingSeconds, logs, isLoaded, user])
+  }, [mission, remainingSeconds, logs, sessionStartTime, isLoaded, user])
 
   // Timer logic
   useEffect(() => {

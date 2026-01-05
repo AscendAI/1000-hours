@@ -12,6 +12,7 @@ export interface UserData {
     note: string
     intensity: number
   }>
+  sessionStartTime: number | null
   updatedAt: string
 }
 
@@ -28,6 +29,7 @@ export async function saveUserData(userId: string, data: AppState): Promise<void
       ...log,
       timestamp: log.timestamp.toISOString(),
     })),
+    sessionStartTime: data.sessionStartTime,
     updatedAt: new Date().toISOString(),
   }
 
@@ -57,6 +59,7 @@ export async function loadUserData(userId: string): Promise<AppState | null> {
           ...log,
           timestamp: new Date(log.timestamp),
         })),
+        sessionStartTime: data.sessionStartTime || null,
       }
     }
 
